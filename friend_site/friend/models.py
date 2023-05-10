@@ -3,7 +3,7 @@ from user.models import User
 
 
 class Friends(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_friend_list")
     friends = models.ManyToManyField(
         User,
         blank=True,
@@ -11,7 +11,7 @@ class Friends(models.Model):
     )
 
     def __str__(self):
-        return self.user.name
+        return self.user.username
 
     def add_friend(self, user):
         if not user in self.friends.all():
@@ -35,7 +35,7 @@ class FriendRequest(models.Model):
     is_active = models.BooleanField(blank=True, null=False, default=True)
 
     def __str__(self):
-        return self.sender.name
+        return self.sender.username
 
     def accept(self):
         receiver_friend_list = Friends.objects.get(user=self.receiver)
@@ -46,6 +46,12 @@ class FriendRequest(models.Model):
                 sender_friend_list.add_friend(self.receiver)
                 self.is_active = False
                 self.save()
+
+                # Check if there is a reciprocal friend request from the receiver to the sender
+                reciprocal_request = FriendRequest.objects.filter(sender=self.receiver, receiver=self.sender,
+                                                                  is_active=True).first()
+                if reciprocal_request:
+                    reciprocal_request.accept()
 
     def decline(self):
         self.is_active = False

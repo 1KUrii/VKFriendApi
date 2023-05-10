@@ -15,14 +15,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from friend.views import *
+from .yasg import urlpatterns as doc_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/friends/', FriendsListCreateAPIView.as_view(), name='friends-list-create'),
-    path('api/v1/friends/<int:pk>/', FriendsRetrieveUpdateDestroyAPIView.as_view(), name='friends-retrieve-update-destroy'),
-    path('api/v1/friend-requests/', FriendRequestListCreateAPIView.as_view(), name='friend-requests-list-create'),
-    path('api/v1/friend-requests/<int:pk>/', FriendRequestRetrieveUpdateDestroyAPIView.as_view(),
-         name='friend-requests-retrieve-update-destroy'),
+    path('api/v1/friend-auth/', include('rest_framework.urls')),
+    path('api/v1/friend-request/', FriendRequestView.as_view(), name='friend-request'),
+    path('api/v1/friend-request/list/', FriendRequestListView.as_view(), name='friend-request-list'),
+    path('api/v1/friend-request/<int:pk>/accept-reject/', FriendRequestAcceptRejectView.as_view(),
+         name='friend-request-accept-reject'),
+    path('api/v1/friends/list/', FriendsListView.as_view(), name='friends-list'),
+    path('api/v1/friend-status/<int:pk>/', FriendStatusView.as_view(), name='friend-status'),
+    path('api/v1/friends/<int:pk>/remove/', FriendsRemoveView.as_view(), name='friends-remove'),
+    path('api/v1/auth/', include('djoser.urls')),
+    re_path('^auth/', include('djoser.urls.authtoken')),
 ]
+
+urlpatterns += doc_urls
